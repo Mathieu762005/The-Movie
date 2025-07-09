@@ -1,8 +1,8 @@
 .header {
-    height: 75vh;
+    height: 65vh;
     background-image: url(img/heads-of-state.webp);
     background-size: cover;
-    background-position:center;
+    background-position-y: 30%;
     padding-right: 100rem;
 }
 
