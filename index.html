@@ -12,16 +12,29 @@
 </head>
 
 <body>
-    <header class="header d-flex align-items-center justify-content-center" id="header">
-        <div class="name">
-            <img src="img/heads-of-state-name.png" width="700" alt="heads-of-state">
-            <div class="d-flex align-items-center justify-content-center mt-4">
-                <button class="bg-warning px-5 rounded-5 d-flex align-items-center"><i class="bi bi-film fs-3 pe-2"></i> Réserver maintenant</button>
+    <header class="header" id="header">
+        <nav class="navbar">
+            <div class="container-fluid">
+                <a class="navbar-brand text-white">Navbar</a>
+                <form class="d-flex" role="search">
+                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+            </div>
+        </nav>
+        <div class="placementName d-flex align-items-center justify-content-center">
+            <div>
+                <div class="text-center">
+                    <img src="img/heads-of-state-name.png" alt="heads-of-state">
+                </div>
+                <div class="d-flex align-items-center justify-content-center mt-4">
+                    <button class="bg-warning px-5 rounded-5 d-flex align-items-center"><i class="bi bi-film pe-2"></i>
+                        Réserver maintenant</button>
+                </div>
             </div>
         </div>
     </header>
     <main>
-
     </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
