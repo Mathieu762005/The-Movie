@@ -1,7 +1,12 @@
-const apiKey = '2efa57c62260627a52ea2f91ce4c8ec5'
-const url = `https://api.themoviedb.org/3/movie/popular?api_key=2efa57c62260627a52ea2f91ce4c8ec5&language=fr-FR&page=1`
+const options = {
+    method: 'GET',
+    headers: {
+        accept: 'application/json',
+        Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZWZhNTdjNjIyNjA2MjdhNTJlYTJmOTFjZTRjOGVjNSIsIm5iZiI6MTc1MjA3NDMxNC45NDUsInN1YiI6IjY4NmU4ODRhOWIwM2EzNzQ4YjZlOGU5MyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.BKgHRkuba0GKB7AQbX61tAbVcZMwmpEnX53ZwhMO3_8'
+    }
+};
 
-fetch(url)
+fetch('https://api.themoviedb.org/3/movie/now_playing?language=fr-FR&page=1', options)
     .then(response => response.json())
     .then(data => {
         console.log(data)
@@ -9,11 +14,17 @@ fetch(url)
         for (i = 0; i < 20; i++) {
             document.getElementById("container").innerHTML += `
             <div class="card border-0 px-2" style="width: 15rem;">
-                <img src="https://image.tmdb.org/t/p/w500/${data.results[i].poster_path}" class="card-img-top rounded-0" id="c" alt="">
+                <a href="pageFilm.html?id=${data.results[i].id}">
+                    <img src="https://image.tmdb.org/t/p/w500/${data.results[i].poster_path}"
+                        class="card-img-top rounded-0" id="c" alt="">
+                </a>
                 <div class="card-body p-1">
-                    <h5 class="card-title text-white" id="titre">${data.results[i].title}</h5>
+                    <a href="pageFilm.html">
+                      <h5 class="card-title text-white" id="titre">${data.results[i].title}</h5>
+                    </a>
                     <p class="date">date de sortie ${data.results[i].release_date}</p>
-                    <p class="text-white"><i class="bi bi-star-fill"></i> avis : ${Math.floor(data.results[i].vote_average)}/10</p>
+                    <p class="text-white"><i class="bi bi-star-fill"></i> avis :
+                        ${Math.floor(data.results[i].vote_average)}/10</p>
                 </div>
             </div>
             `

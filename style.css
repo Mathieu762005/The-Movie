@@ -9,6 +9,9 @@
 .nomFilm {
     width: 700px;
 }
+a {
+   text-decoration: none; 
+}
 
 .logo {
     width: 125px;
