@@ -6,8 +6,12 @@
     background-position-y: 30%;
 }
 
-img {
-    width: 700px; 
+.nomFilm {
+    width: 700px;
+}
+
+.logo {
+    width: 125px;
 }
 
 @media (max-width: 1440px) {
@@ -19,12 +23,12 @@ img {
         font-size: 25px;
     }
 
-    img {
+    .nomFilm {
         width: 400px;
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 770px) {
     .header {
         height: 15rem;
     }
@@ -33,11 +37,20 @@ img {
         font-size: 12px;
     }
 
-    img {
+    .nomFilm {
         width: 200px;
     }
+
     .placementName {
         margin-left: 3rem;
+    }
+
+    .logo {
+        width: 96px;
+    }
+
+    .card {
+        width: 20rem;
     }
 
 }
@@ -63,7 +76,7 @@ button {
 }
 
 body {
-   background: linear-gradient(0deg,rgba(0, 0, 0, 1) 0%, rgba(33, 98, 145, 0.76) 97%);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(33, 98, 145, 0.76) 97%);
 }
 
 .container {
@@ -71,9 +84,14 @@ body {
 }
 
 .card {
-    background: linear-gradient(0deg,rgba(0, 0, 0, 0) 0%, rgba(33, 98, 145, 0) 97%);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(33, 98, 145, 0) 97%);
 }
 
 .date {
     color: rgb(140, 140, 140);
+}
+
+.footer {
+    background-color: #3e627c;
+    height: 10rem;
 }
