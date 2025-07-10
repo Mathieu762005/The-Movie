@@ -5,7 +5,7 @@ fetch(url)
     .then(response => response.json())
     .then(data => {
         console.log(data)
-        document.getElementById("header").style.backgroundImage = "url(https://image.tmdb.org/t/p/original/x58Gk2ZGU5AEBp25MQe2nhZhd5z.jpg)";
+        document.getElementById("header").style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${data.results[0].backdrop_path})`;
         for (i = 0; i < 20; i++) {
             document.getElementById("container").innerHTML += `
             <div class="card border-0 px-2" style="width: 15rem;">
