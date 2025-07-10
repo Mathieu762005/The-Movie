@@ -1,7 +1,7 @@
 .header {
     height: 40rem;
     width: 90%;
-    background-image: url(img/heads-of-state.webp);
+    /* background-image: url(img/heads-of-state.webp); */
     background-size: cover;
     background-position-y: 30%;
 }
@@ -14,9 +14,17 @@
     width: 125px;
 }
 
+.p {
+    margin-top: 18rem;
+}
+
 @media (max-width: 1440px) {
     .header {
         height: 40rem;
+    }
+
+    .p {
+        margin-top: 5rem;
     }
 
     button {
@@ -31,6 +39,10 @@
 @media (max-width: 770px) {
     .header {
         height: 15rem;
+    }
+
+    .p {
+        margin-top: 2rem;
     }
 
     button {

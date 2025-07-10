@@ -5,6 +5,7 @@ fetch(url)
     .then(response => response.json())
     .then(data => {
         console.log(data)
+        document.getElementById("header").style.backgroundImage = "url(https://igitmage.tmdb.org/t/p/original/x58Gk2ZGU5AEBp25MQe2nhZhd5z.jpg)";
         for (i = 0; i < 20; i++) {
             document.getElementById("container").innerHTML += `
             <div class="card border-0 px-2" style="width: 15rem;">
@@ -12,9 +13,9 @@ fetch(url)
                 <div class="card-body p-1">
                     <h5 class="card-title text-white" id="titre">${data.results[i].title}</h5>
                     <p class="date">date de sortie ${data.results[i].release_date}</p>
-                    <p class="text-white"><i class="bi bi-star-fill"></i> avis : ${Math.floor(data.results[i].vote_average)}</p>
+                    <p class="text-white"><i class="bi bi-star-fill"></i> avis : ${Math.floor(data.results[i].vote_average)}/10</p>
                 </div>
             </div>
             `
         }
-    })  
+    })
