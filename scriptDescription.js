@@ -14,4 +14,13 @@ fetch(`https://api.themoviedb.org/3/movie/${idMovie}?language=fr-FR`, options)
     .then(response => response.json())
     .then(data => {
         console.log(data)
+        document.getElementById("body").style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${data.backdrop_path})`
+        document.getElementById("container1").innerHTML = `
+            <div class="description row justify-content-center">
+                <h5 class="titre pb-3">${data.title}</h5>
+                <p><i class="bi bi-hand-thumbs-up-fill"></i> ${data.vote_count} votes . note ${Math.floor(data.vote_average)}/10</p>
+                <p>date de sortie : ${data.release_date}</p>
+                <p>${data.overview}</p>
+            </div>
+            `
     })

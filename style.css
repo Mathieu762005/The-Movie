@@ -1,7 +1,6 @@
 .header {
     height: 40rem;
     width: 90%;
-    /* background-image: url(img/heads-of-state.webp); */
     background-size: cover;
     background-position-y: 30%;
 }
@@ -9,8 +8,9 @@
 .nomFilm {
     width: 700px;
 }
+
 a {
-   text-decoration: none; 
+    text-decoration: none;
 }
 
 .logo {
@@ -109,4 +109,34 @@ body {
 .footer {
     background-color: #3e627c;
     height: 10rem;
+}
+
+
+
+/* page 2 */
+
+.description {
+    width: 75%;
+}
+
+.titre {
+    font-size: 4rem;
+}
+
+@media (max-width: 770px) {
+    .container {
+        height: 10rem;
+    }
+}
+
+@media (max-width: 1440px) {
+    .container {
+        height: 30rem;
+    }
+}
+
+#body {
+    background-size: cover;
+    background-position: top;
+    background-repeat: no-repeat;
 }
