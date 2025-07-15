@@ -6,13 +6,20 @@ const options = {
     }
 };
 
-fetch('https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1', options)
-    .then(response => response.json())
-    .then(data => {
-        console.log(data)
-        document.getElementById("header").style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${data.results[0].backdrop_path})`;
-        for (i = 0; i < 20; i++) {
-            document.getElementById("container").innerHTML += `
+const searchParams = new URLSearchParams(window.location.search);
+let recherche = searchParams.get('recherche')
+
+
+if (recherche !== null || typeof recherche !== 'object') {
+    rechercher()
+} else {
+    fetch('https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1', options)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data)
+            document.getElementById("header").style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${data.results[0].backdrop_path})`;
+            for (i = 0; i < 20; i++) {
+                document.getElementById("container").innerHTML += `
             <div class="card border-0 px-2" style="width: 15rem;">
                 <a href="pageFilm.html?id=${data.results[i].id}">
                     <img src="https://image.tmdb.org/t/p/w500/${data.results[i].poster_path}"
@@ -28,5 +35,37 @@ fetch('https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1', op
                 </div>
             </div>
             `
-        }
-    })
+            }
+        })
+}
+
+
+function rechercher() {
+
+    fetch(`https://api.themoviedb.org/3/search/movie?query=${recherche}&include_adult=false&language=fr-FR&page=1`, options)
+        .then(res => res.json())
+        .then(data => {
+
+            console.log(data)
+            document.getElementById("container").innerHTML = ""
+            document.getElementById("header").style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${data.results[0].backdrop_path})`;
+            for (i = 0; i < 30; i++) {
+                document.getElementById("container").innerHTML += `
+            <div class="card border-0 px-2" style="width: 15rem;">
+                <a href="pageFilm.html?id=${data.results[i].id}">
+                    <img src="https://image.tmdb.org/t/p/w500/${data.results[i].poster_path}"
+                        class="card-img-top rounded-4" id="c" alt="">
+                </a>
+                <div class="card-body p-1">
+                    <a href="pageFilm.html">
+                      <h5 class="card-title text-white" id="titre">${data.results[i].title}</h5>
+                    </a>
+                    <p class="date">date de sortie ${data.results[i].release_date}</p>
+                    <p class="text-white"><i class="bi bi-star-fill"></i> avis :
+                        ${Math.floor(data.results[i].vote_average)}/10</p>
+                </div>
+            </div>
+            `
+            }
+        });
+}
