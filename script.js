@@ -181,10 +181,10 @@ function majAffichePrincipale(movie) {
                 </p>
                 <p class="description-text text-secondary">${overviewText}</p>
                 <div class="mt-3">
-                    <a href="pageFilm.html?id=${movie.id}" class="btn btn-danger me-2">Voir la description</a>
-                    <a href="#" class="btn text-white border-secondary" style="background-color: rgba(0, 0, 0, 0.5);">
+                    <a href="pageFilm.html?id=${movie.id}" class="btn btn-danger px-4 py-2 me-2">Voir la description</a>
+                    <button onclick="voirBandeAnnonce(${movie.id})" class="btn text-white border-secondary px-4 py-2" style="background-color: rgba(0, 0, 0, 0.5);">
                         <i class="bi bi-play-fill"></i> Bande annonce
-                    </a>
+                    </button>
                 </div>
             </div>`;
     }
@@ -221,4 +221,84 @@ function afficherListeFilms(movies) {
     }).join('');
 
     container.innerHTML = filmsHtml;
+}
+
+// --- BANDE ANNONCE (page d'accueil) ---
+
+function voirBandeAnnonce(movieId) {
+    // On cherche d'abord les vidéos en français
+    fetch(`${API_BASE}/movie/${movieId}/videos?language=fr-FR`, API_OPTIONS)
+        .then(res => {
+            if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
+            return res.json();
+        })
+        .then(frData => {
+            // Chercher un trailer YouTube en français
+            const frVideo = frData.results?.find(v => v.site === 'YouTube' && v.type === 'Trailer');
+            if (frVideo) {
+                ouvrirTrailerAccueil(frVideo.key);
+                return;
+            }
+
+            // Pas de trailer FR → fallback en anglais
+            return fetch(`${API_BASE}/movie/${movieId}/videos?language=en-US`, API_OPTIONS)
+                .then(res => res.json())
+                .then(enData => {
+                    const allVideos = [...frData.results, ...enData.results];
+                    const video = allVideos.find(v => v.site === 'YouTube' && v.type === 'Trailer')
+                        || allVideos.find(v => v.site === 'YouTube')
+                        || allVideos[0];
+
+                    if (!video) {
+                        alert("Aucune bande-annonce disponible pour ce film.");
+                        return;
+                    }
+                    ouvrirTrailerAccueil(video.key);
+                });
+        })
+        .catch(err => {
+            console.error("Erreur chargement bande-annonce :", err);
+            alert("Impossible de charger la bande-annonce.");
+        });
+}
+
+function ouvrirTrailerAccueil(key) {
+    // Créer la modal si elle n'existe pas encore
+    let modalElement = document.getElementById('trailerModalAccueil');
+    if (!modalElement) {
+        modalElement = document.createElement('div');
+        modalElement.id = 'trailerModalAccueil';
+        modalElement.className = 'modal fade';
+        modalElement.tabIndex = -1;
+        modalElement.setAttribute('aria-hidden', 'true');
+        modalElement.innerHTML = `
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content" style="background: #000; border: 1px solid #333;">
+                    <div class="modal-header border-0">
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div class="ratio ratio-16x9" id="videoContainerAccueil"></div>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(modalElement);
+    }
+
+    const videoContainer = document.getElementById('videoContainerAccueil');
+    videoContainer.innerHTML = `
+        <iframe src="https://www.youtube.com/embed/${key}?autoplay=1" 
+                title="Bande-annonce YouTube" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+        </iframe>`;
+
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    // Nettoyage à la fermeture
+    modalElement.addEventListener('hidden.bs.modal', () => {
+        videoContainer.innerHTML = "";
+    }, { once: true });
 }

@@ -21,15 +21,33 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- FONCTIONS ---
 
 function chargerDetailsFilm() {
-    // On utilise API_BASE et API_OPTIONS de config.js
-    // append_to_response=videos → récupère les vidéos en même temps que les détails
-    // (1 seul appel API au lieu de 2 = plus rapide)
-    fetch(`${API_BASE}/movie/${idMovie}?language=fr-FR&append_to_response=videos`, API_OPTIONS)
+    // 1. Détails du film en français
+    const detailsPromise = fetch(`${API_BASE}/movie/${idMovie}?language=fr-FR`, API_OPTIONS)
         .then(response => {
             if (!response.ok) throw new Error("Film introuvable");
             return response.json();
-        })
-        .then(data => {
+        });
+
+    // 2. Vidéos : on cherche d'abord en français, puis fallback en anglais
+    const videosPromise = fetch(`${API_BASE}/movie/${idMovie}/videos?language=fr-FR`, API_OPTIONS)
+        .then(res => res.ok ? res.json() : { results: [] })
+        .then(frData => {
+            // Si on a un trailer YouTube en français, on le garde
+            const frTrailer = frData.results?.find(v => v.site === 'YouTube' && v.type === 'Trailer');
+            if (frTrailer) return frData;
+
+            // Sinon, on récupère les vidéos en anglais et on fusionne
+            return fetch(`${API_BASE}/movie/${idMovie}/videos?language=en-US`, API_OPTIONS)
+                .then(res => res.ok ? res.json() : { results: [] })
+                .then(enData => {
+                    // Vidéos FR en premier, puis les EN en complément
+                    return { results: [...frData.results, ...enData.results] };
+                });
+        });
+
+    Promise.all([detailsPromise, videosPromise])
+        .then(([data, videosData]) => {
+            data.videos = videosData;
             majDesignPage(data);
             injecterContenu(data);
         })
