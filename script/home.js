@@ -181,7 +181,7 @@ function majAffichePrincipale(movie) {
                 </p>
                 <p class="description-text text-secondary">${overviewText}</p>
                 <div class="mt-3">
-                    <a href="pageFilm.html?id=${movie.id}" class="btn btn-danger px-4 py-2 me-2">Voir la description</a>
+                    <a href="description.html?id=${movie.id}" class="btn btn-danger px-4 py-2 me-2">Voir la description</a>
                     <button onclick="voirBandeAnnonce(${movie.id})" class="btn text-white border-secondary px-4 py-2" style="background-color: rgba(0, 0, 0, 0.5);">
                         <i class="bi bi-play-fill"></i> Bande annonce
                     </button>
@@ -207,7 +207,7 @@ function afficherListeFilms(movies) {
         //   (économie massive sur mobile avec connexion lente)
         return `
             <div class="card border-0 px-2 mb-4" style="width: 15rem; background:transparent;">
-                <a href="pageFilm.html?id=${movie.id}">
+                <a href="description.html?id=${movie.id}">
                     <img src="${IMG_BASE}/w342/${movie.poster_path}"
                         loading="lazy"
                         class="card-img-top rounded-4" alt="${movie.title}">

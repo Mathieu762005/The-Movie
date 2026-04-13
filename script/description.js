@@ -85,7 +85,7 @@ function injecterContenu(data) {
     // SÉCURITÉ : fallback si poster_path est null (certains films n'ont pas d'affiche)
     const posterSrc = data.poster_path
         ? `${IMG_BASE}/w500${data.poster_path}`
-        : 'img/logo.png';
+        : 'assets/img/logo.png';
 
     container.innerHTML = `
     <div class="container">
