@@ -1,20 +1,26 @@
-const options = {
-    method: 'GET',
-    headers: {
-        accept: 'application/json',
-        Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZWZhNTdjNjIyNjA2MjdhNTJlYTJmOTFjZTRjOGVjNSIsIm5iZiI6MTc1MjA3NDMxNC45NDUsInN1YiI6IjY4NmU4ODRhOWIwM2EzNzQ4YjZlOGU5MyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.BKgHRkuba0GKB7AQbX61tAbVcZMwmpEnX53ZwhMO3_8'
-    }
-};
+// ==========================================================================
+// SCRIPT.JS — Page d'accueil (index.html)
+// ==========================================================================
+// Ce fichier utilise config.js qui doit être chargé AVANT dans le HTML.
+// On utilise les constantes API_OPTIONS, API_BASE, IMG_BASE de config.js
+// ==========================================================================
 
 const searchParams = new URLSearchParams(window.location.search);
-const recherche = searchParams.get('recherche'); // Utilisation de const car on ne modifie pas cette variable
+const recherche = searchParams.get('recherche');
 
-// --- OPTIMISATION 4 : On attend que le HTML soit chargé ---
+// --- INITIALISATION AU CHARGEMENT DU DOM ---
+// POURQUOI addEventListener('DOMContentLoaded') ?
+// Garantit que tous les éléments HTML existent avant d'y accéder.
+// Sans ça, getElementById() pourrait retourner null → crash silencieux.
 document.addEventListener('DOMContentLoaded', () => {
     chargerCategories();
 
+    // Pré-remplir le champ de recherche si une recherche est en cours
+    // → Meilleure UX : l'utilisateur voit ce qu'il a cherché
     if (recherche && recherche.trim() !== "") {
-        rechercher(recherche); // On passe la recherche en paramètre, c'est plus propre
+        const champRecherche = document.getElementById('recherche');
+        if (champRecherche) champRecherche.value = recherche;
+        rechercher(recherche);
     } else {
         chargerFilmsAccueil();
     }
@@ -23,39 +29,93 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- FONCTIONS PRINCIPALES ---
 
 function chargerFilmsAccueil() {
-    fetch('https://api.themoviedb.org/3/movie/now_playing?language=fr-FR&page=1', options)
-        .then(response => response.json())
+    // Afficher un spinner pendant le chargement
+    const container = document.getElementById("container");
+    if (container) {
+        container.innerHTML = `
+            <div class="d-flex justify-content-center w-100 py-5">
+                <div class="spinner-border text-danger" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                </div>
+            </div>`;
+    }
+
+    fetch(`${API_BASE}/movie/now_playing?language=fr-FR&page=1`, API_OPTIONS)
+        .then(response => {
+            // SÉCURITÉ : toujours vérifier que la réponse est OK (status 200-299)
+            if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+            return response.json();
+        })
         .then(data => {
             if (data.results && data.results.length > 0) {
                 majAffichePrincipale(data.results[0]);
                 afficherListeFilms(data.results);
             }
         })
-        .catch(erreur => console.error("Erreur lors du chargement de l'accueil :", erreur)); // OPTIMISATION 2
+        .catch(erreur => {
+            console.error("Erreur lors du chargement de l'accueil :", erreur);
+            // Afficher un message d'erreur à l'utilisateur plutôt qu'un écran vide
+            if (container) {
+                container.innerHTML = `
+                    <p class="text-white text-center w-100">
+                        Impossible de charger les films. Veuillez réessayer plus tard.
+                    </p>`;
+            }
+        });
 }
 
 function rechercher(query) {
-    fetch(`https://api.themoviedb.org/3/search/movie?query=${query}&include_adult=false&language=fr-FR&page=1`, options)
-        .then(res => res.json())
+    const container = document.getElementById("container");
+    if (container) {
+        container.innerHTML = `
+            <div class="d-flex justify-content-center w-100 py-5">
+                <div class="spinner-border text-danger" role="status">
+                    <span class="visually-hidden">Recherche...</span>
+                </div>
+            </div>`;
+    }
+
+    // SÉCURITÉ (XSS) : encodeURIComponent empêche l'injection de code dans l'URL.
+    // Sans ça, un utilisateur malveillant pourrait taper quelque chose comme :
+    // &api_key=xxx dans la barre de recherche et manipuler la requête.
+    const encodedQuery = encodeURIComponent(query);
+
+    fetch(`${API_BASE}/search/movie?query=${encodedQuery}&include_adult=false&language=fr-FR&page=1`, API_OPTIONS)
+        .then(res => {
+            if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
+            return res.json();
+        })
         .then(data => {
             if (data.results && data.results.length > 0) {
                 majAffichePrincipale(data.results[0]);
                 afficherListeFilms(data.results);
             } else {
-                document.getElementById("container").innerHTML = "<p class='text-white text-center'>Aucun film trouvé.</p>";
+                if (container) {
+                    container.innerHTML = "<p class='text-white text-center w-100'>Aucun film trouvé.</p>";
+                }
             }
         })
-        .catch(erreur => console.error("Erreur de recherche :", erreur));
+        .catch(erreur => {
+            console.error("Erreur de recherche :", erreur);
+            if (container) {
+                container.innerHTML = "<p class='text-white text-center w-100'>Erreur lors de la recherche.</p>";
+            }
+        });
 }
 
 function chargerCategories() {
-    fetch('https://api.themoviedb.org/3/genre/movie/list?language=fr-FR', options)
-        .then(res => res.json())
+    fetch(`${API_BASE}/genre/movie/list?language=fr-FR`, API_OPTIONS)
+        .then(res => {
+            if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
+            return res.json();
+        })
         .then(data => {
             const catContainer = document.getElementById("categoriesList");
-            if (!catContainer) return; // Sécurité si la div n'existe pas
+            if (!catContainer) return;
 
-            // OPTIMISATION 1 : On crée un tableau de HTML qu'on fusionne à la fin avec .join('')
+            // PERFORMANCE : map() + join() crée le HTML en une seule opération
+            // Beaucoup plus rapide que des innerHTML += en boucle
+            // (chaque += force le navigateur à re-parser tout le HTML)
             const categoriesHtml = data.genres.map(genre => `
                 <button class="btn-category" onclick="filtrerParGenre(${genre.id})">
                     ${genre.name}
@@ -68,10 +128,21 @@ function chargerCategories() {
 }
 
 function filtrerParGenre(genreId) {
-    document.getElementById("container").innerHTML = "<div class='text-center w-100'><div class='spinner-border text-danger'></div></div>";
+    const container = document.getElementById("container");
+    if (container) {
+        container.innerHTML = `
+            <div class="d-flex justify-content-center w-100 py-5">
+                <div class="spinner-border text-danger" role="status">
+                    <span class="visually-hidden">Filtrage...</span>
+                </div>
+            </div>`;
+    }
 
-    fetch(`https://api.themoviedb.org/3/discover/movie?with_genres=${genreId}&language=fr-FR&page=1`, options)
-        .then(res => res.json())
+    fetch(`${API_BASE}/discover/movie?with_genres=${genreId}&language=fr-FR&page=1`, API_OPTIONS)
+        .then(res => {
+            if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
+            return res.json();
+        })
         .then(data => {
             if (data.results && data.results.length > 0) {
                 majAffichePrincipale(data.results[0]);
@@ -87,14 +158,19 @@ function majAffichePrincipale(movie) {
     const year = movie.release_date ? new Date(movie.release_date).getFullYear() : "N/A";
     const vote = movie.vote_average ? Math.floor(movie.vote_average) : "NR";
 
-    // OPTIMISATION 3 : On protège le cas où overview est null ou vide
-    const overviewText = movie.overview ? movie.overview.substring(0, 200) + '...' : "Aucun résumé disponible pour ce film.";
+    // Protection contre overview null ou vide
+    const overviewText = movie.overview
+        ? movie.overview.substring(0, 200) + '...'
+        : "Aucun résumé disponible pour ce film.";
 
     const afficheDiv = document.getElementById("affiche");
     const descContainer = document.getElementById("descriptionContainer");
 
     if (afficheDiv && descContainer) {
-        afficheDiv.style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${movie.backdrop_path || movie.poster_path})`;
+        // PERFORMANCE : "original" est la plus grande image (souvent 3000px+).
+        // Pour le backdrop, w1280 est suffisant pour la plupart des écrans.
+        const backdropPath = movie.backdrop_path || movie.poster_path;
+        afficheDiv.style.backgroundImage = `url(${IMG_BASE}/w1280/${backdropPath})`;
 
         descContainer.innerHTML = `
             <div class="afficheDescription">
@@ -118,17 +194,22 @@ function afficherListeFilms(movies) {
     const container = document.getElementById("container");
     if (!container) return;
 
-    // OPTIMISATION 1 : map() et join() remplacent le innerHTML +=
+    // PERFORMANCE : map() et join() assemblent tout le HTML d'un coup
     const filmsHtml = movies.map(movie => {
         if (!movie.poster_path) return ""; // On saute les films sans image
 
         const year = movie.release_date ? new Date(movie.release_date).getFullYear() : "N/A";
         const vote = movie.vote_average ? Math.floor(movie.vote_average) : "NR";
 
+        // PERFORMANCE : 
+        // - w342 au lieu de w500 → images ~40% plus légères, qualité suffisante pour 15rem
+        // - loading="lazy" → le navigateur ne charge l'image que quand elle est visible
+        //   (économie massive sur mobile avec connexion lente)
         return `
             <div class="card border-0 px-2 mb-4" style="width: 15rem; background:transparent;">
                 <a href="pageFilm.html?id=${movie.id}">
-                    <img src="https://image.tmdb.org/t/p/w500/${movie.poster_path}"
+                    <img src="${IMG_BASE}/w342/${movie.poster_path}"
+                        loading="lazy"
                         class="card-img-top rounded-4" alt="${movie.title}">
                 </a>
                 <div class="card-body p-1">

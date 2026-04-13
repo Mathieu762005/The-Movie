@@ -1,12 +1,11 @@
-const options = {
-    method: 'GET',
-    headers: {
-        accept: 'application/json',
-        Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZWZhNTdjNjIyNjA2MjdhNTJlYTJmOTFjZTRjOGVjNSIsIm5iZiI6MTc1MjA3NDMxNC45NDUsInN1YiI6IjY4NmU4ODRhOWIwM2EzNzQ4YjZlOGU5MyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.BKgHRkuba0GKB7AQbX61tAbVcZMwmpEnX53ZwhMO3_8'
-    }
-};
+// ==========================================================================
+// SCRIPTDESCRIPTION.JS — Page détail d'un film (pageFilm.html)
+// ==========================================================================
+// Ce fichier utilise config.js qui doit être chargé AVANT dans le HTML.
+// On utilise les constantes API_OPTIONS, API_BASE, IMG_BASE de config.js
+// ==========================================================================
 
-// 1. Récupération sécurisée de l'ID
+// 1. Récupération sécurisée de l'ID depuis l'URL
 const urlParams = new URLSearchParams(window.location.search);
 const idMovie = urlParams.get('id');
 
@@ -22,9 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- FONCTIONS ---
 
 function chargerDetailsFilm() {
-    fetch(`https://api.themoviedb.org/3/movie/${idMovie}?language=fr-FR&append_to_response=videos`, options)
+    // On utilise API_BASE et API_OPTIONS de config.js
+    // append_to_response=videos → récupère les vidéos en même temps que les détails
+    // (1 seul appel API au lieu de 2 = plus rapide)
+    fetch(`${API_BASE}/movie/${idMovie}?language=fr-FR&append_to_response=videos`, API_OPTIONS)
         .then(response => {
-            if (!response.ok) throw new Error("Film introuvable"); // Sécurité : gestion du 404
+            if (!response.ok) throw new Error("Film introuvable");
             return response.json();
         })
         .then(data => {
@@ -37,33 +39,42 @@ function chargerDetailsFilm() {
         });
 }
 
-// Séparer le style du contenu pur est une bonne pratique
+// Séparer le style du contenu est une bonne pratique (SoC: Separation of Concerns)
 function majDesignPage(data) {
     const body = document.getElementById("body");
     if (data.backdrop_path) {
-        // On injecte l'image SEULE. Le CSS s'occupe de l'assombrir.
-        body.style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${data.backdrop_path})`;
+        // PERFORMANCE : w1280 au lieu de "original" — suffisant pour un fond
+        body.style.backgroundImage = `url(${IMG_BASE}/w1280/${data.backdrop_path})`;
     }
 }
 
 function injecterContenu(data) {
     const container = document.getElementById("container1");
 
-    // Check des vidéos (Optimisation : on cherche le trailer en priorité)
-    const video = data.videos?.results?.find(v => v.site === 'YouTube' && v.type === 'Trailer') || data.videos?.results?.[0];
+    // OPTIMISATION : optional chaining (?.) évite les crashs si videos est undefined
+    // On cherche d'abord un Trailer, sinon on prend la première vidéo dispo
+    const video = data.videos?.results?.find(v => v.site === 'YouTube' && v.type === 'Trailer')
+        || data.videos?.results?.[0];
     const videoKey = video ? video.key : null;
 
     // Données formatées
-    const genresHtml = data.genres.map(g => `<span class="badge rounded-pill bg-secondary me-2">${g.name}</span>`).join('');
+    const genresHtml = data.genres
+        .map(g => `<span class="badge rounded-pill bg-secondary me-2">${g.name}</span>`)
+        .join('');
     const annee = data.release_date ? new Date(data.release_date).getFullYear() : "N/A";
     const note = data.vote_average ? data.vote_average.toFixed(1) : "0";
+
+    // SÉCURITÉ : fallback si poster_path est null (certains films n'ont pas d'affiche)
+    const posterSrc = data.poster_path
+        ? `${IMG_BASE}/w500${data.poster_path}`
+        : 'img/logo.png';
 
     container.innerHTML = `
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-5 text-center mb-4 mb-md-0">
-                <img src="https://image.tmdb.org/t/p/w500${data.poster_path}" 
-                     alt="${data.title}" 
+                <img src="${posterSrc}" 
+                     alt="Affiche de ${data.title}" 
                      class="img-fluid rounded-4 shadow-lg border border-secondary">
             </div>
 
@@ -96,15 +107,15 @@ function injecterContenu(data) {
     </div>`;
 }
 
-// Fonction pour la popup
+// Fonction pour la popup trailer
 function ouvrirTrailer(key) {
     const videoContainer = document.getElementById("videoContainer");
     const modalElement = document.getElementById('trailerModal');
 
-    // On injecte l'iframe
+    // On injecte l'iframe YouTube
     videoContainer.innerHTML = `
         <iframe src="https://www.youtube.com/embed/${key}?autoplay=1" 
-                title="YouTube video player" 
+                title="Bande-annonce YouTube" 
                 frameborder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowfullscreen>
@@ -113,14 +124,15 @@ function ouvrirTrailer(key) {
     const maModal = new bootstrap.Modal(modalElement);
     maModal.show();
 
-    // OPTIMISATION : Nettoyage automatique à la fermeture
-    // On utilise { once: true } pour que l'écouteur s'autodétruise
+    // OPTIMISATION : Nettoyage automatique à la fermeture de la modal
+    // { once: true } → l'écouteur s'autodétruit après la première exécution
+    // Sans ça, on accumulerait des écouteurs à chaque ouverture (fuite mémoire)
     modalElement.addEventListener('hidden.bs.modal', () => {
         videoContainer.innerHTML = "";
     }, { once: true });
 }
 
-// Petite fonction utilitaire pour les erreurs
+// Fonction utilitaire pour les erreurs
 function afficherErreur(message) {
     document.getElementById("container1").innerHTML = `
         <div class="text-center w-100 mt-5">
